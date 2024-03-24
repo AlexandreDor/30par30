@@ -8,6 +8,7 @@ sys.path.append(full_path)
 
 import argparse
 import cv2
+import numpy as np
 
 from networking import TCPClientAbstraction, DisconnectedException
 from encoding import Packer
@@ -42,6 +43,59 @@ class Client(TCPClientAbstraction):
     def stop(self):
         self.finalize()
 
+def recognizeRedBalls(frame, redBalls):
+    # Convertir l'image en espace couleur HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Définir les plages de couleur pour le rouge
+    lower_red = np.array([0, 100, 100])
+    upper_red = np.array([10, 255, 255])
+
+    # Créer un masque pour les pixels rouges
+    mask = cv2.inRange(hsv, lower_red, upper_red)
+
+    # Appliquer le masque à l'image originale
+    masked_image = cv2.bitwise_and(frame, frame, mask=mask)
+
+    # Trouver les contours des objets dans le masque
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Parcourir les contours pour récupérer les positions
+    positions = []
+    for contour in contours:
+        # Calculer le centre du contour
+        M = cv2.moments(contour)
+        if M["m00"] != 0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            positions.append((cX, cY))
+
+    # Dessiner les contours sur l'image originale
+    cv2.drawContours(frame, contours, -1, (0, 255, 0), 2)
+
+    # Afficher l'image avec les contours
+    cv2.imshow('Contours', frame)
+
+    # Afficher les positions des balles rouges
+    ##print("Positions des balles rouges : ", positions)
+
+    # Retourner le nombre de balles rouges
+    print("nombre de balles rouges : ", len(positions))
+    return len(positions)
+    
+    
+
+##traitement de l'image
+def processFrame(frame):
+    ##liste boulles bleues
+    blueBalls = []
+    ##liste boulles rouges
+    redBalls = []
+
+    nbRedBall = recognizeRedBalls(frame, redBalls)
+
+    #cv2.imshow('test',frame)
+
 millisecondsToWait = 1000 // 30
 
 if __name__ == "__main__":
@@ -52,9 +106,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     try:
         client.start(args)
+        print("Client started")
         while client.connected:
             if client.frame is not None:
-                cv2.imshow('test',client.frame)
+                processFrame(client.frame)
             key = cv2.waitKey(millisecondsToWait) & 0x0FF
             if key == ord('q'): break
         client.stop ()
