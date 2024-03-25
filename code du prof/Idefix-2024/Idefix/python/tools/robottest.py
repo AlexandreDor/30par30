@@ -12,6 +12,8 @@ sys.path.append(full_path)
 from geometry import Complex
 from robotic import TwoWheels
 
+rolling = True
+
 def toScreenPoint(c):
     return Complex.Cart(c.x + width / 2.0, -c.y + height / 2.0)
 
@@ -29,7 +31,7 @@ def bezier_curve(P0, P1, P2, P3, t):
     return ((1 - t)**3) * P0 + 3 * ((1 - t)**2) * t * P1 + 3 * (1 - t) * (t**2) * P2 + (t**3) * P3
 
 
-def findPath(robot, target_angle, nb_points=5):
+def findPath(robot, target_angle, nb_points=500):
     path = []
     path.append(robot._position)
     if robot._target is not None:
@@ -73,7 +75,7 @@ def moveRobot(robot,destination,deltaTime=0.5):
                 turnRobot(robot,deltaTime,True)
         else:
             print("on avance vers la destination")
-            moveRobotForward(robot,deltaTime*2)
+            moveRobotForward(robot,deltaTime*6)
 
     
 
@@ -101,6 +103,7 @@ oldTime = pygame.time.get_ticks()
 trackMouse = False
 target_angle = robot._angle
 move = False
+targetTemp = robot._target
 path = findPath(robot,target_angle)
 while True:
     newTime = pygame.time.get_ticks()
@@ -146,9 +149,13 @@ while True:
         path = findPath(robot,target_angle)
     drawPath(screen,path,(255,255,255))
     ####
-    if robot._target is not None and (robot._target - robot._position).norm() > 1 and move==False:
+    if (robot._target is not None and (robot._target - robot._position).norm() > 1 and move==False) or targetTemp != robot._target:
         move = True
         targetPointOnPath = 1
+        
+        path = findPath(robot,target_angle)
+        targetTemp = robot._target
+
     if move:
         moveRobot(robot,path[targetPointOnPath],deltaTime)
         print("distance to target", (path[targetPointOnPath] - robot._position).norm())
@@ -157,6 +164,11 @@ while True:
             targetPointOnPath = targetPointOnPath + 1
             if targetPointOnPath >= len(path):
                 move = False
+    
+    if rolling:
+        #change the target position
+        robot._target = robot._target + Complex.FromPolar(1,robot._angle) * deltaTime
+
     ####
     robot.update(deltaTime)
     oldTime = newTime

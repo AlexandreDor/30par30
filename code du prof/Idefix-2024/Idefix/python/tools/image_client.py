@@ -15,6 +15,9 @@ from encoding import Packer
 
 from jpeg_traits import JpegImage
 
+#all = True
+all = False
+
 class Client(TCPClientAbstraction):
     def __init__(self):
         super().__init__(2048)
@@ -43,16 +46,16 @@ class Client(TCPClientAbstraction):
     def stop(self):
         self.finalize()
 
-def recognizeRedBalls(frame, redBalls):
-    # Convertir l'image en espace couleur HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+def recognizeRedBalls(frame):
+    # Définir les plages de couleur pour le rouge en rgb
+    lower_red = np.array([0, 0, 100])
+    upper_red = np.array([85, 85, 255])
+    redBalls = []
 
-    # Définir les plages de couleur pour le rouge
-    lower_red = np.array([0, 100, 100])
-    upper_red = np.array([10, 255, 255])
+
 
     # Créer un masque pour les pixels rouges
-    mask = cv2.inRange(hsv, lower_red, upper_red)
+    mask = cv2.inRange(frame, lower_red, upper_red)
 
     # Appliquer le masque à l'image originale
     masked_image = cv2.bitwise_and(frame, frame, mask=mask)
@@ -69,9 +72,31 @@ def recognizeRedBalls(frame, redBalls):
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
             positions.append((cX, cY))
+            #si le contour est trop petit, on l'ignore
+            if (cv2.contourArea(contour) < 2) and all == False:
+                continue
+            # si le contour est trop grand, on l'ignore
+            if (cv2.contourArea(contour) > 60) and all == False:
+                continue
+            # sinon, on l'ajoute à la liste des balles rouges
+            redBalls.append(contour)
+
+    #on verifie si les contour sont relativement rond et on retire de la liste si ce n'est pas le cas
+    #print ("len(redBalls) : ", len(redBalls))
+    i = 0
+    while i < len(redBalls):
+        #print("redBalls[",i,"] : ", redBalls[i])
+        perimeter = cv2.arcLength(redBalls[i], True)
+        approx = cv2.approxPolyDP(redBalls[i], 0.04 * perimeter, True)
+        if (len(approx) < 3 or len(approx) > 10) and all == False:
+            print("DROP redBalls[",i,"] : ")
+            redBalls.pop(i)
+            i = i - 1
+        i = i + 1
+
 
     # Dessiner les contours sur l'image originale
-    cv2.drawContours(frame, contours, -1, (0, 255, 0), 2)
+    cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
 
     # Afficher l'image avec les contours
     cv2.imshow('Contours', frame)
@@ -80,28 +105,25 @@ def recognizeRedBalls(frame, redBalls):
     ##print("Positions des balles rouges : ", positions)
 
     # Retourner le nombre de balles rouges
-    print("nombre de balles rouges : ", len(positions))
-    return len(positions)
+    print("nombre de balles rouges : ", len(redBalls))
+    return len(redBalls)
     
     
 
 ##traitement de l'image
 def processFrame(frame):
-    ##liste boulles bleues
-    blueBalls = []
+    
     ##liste boulles rouges
-    redBalls = []
-
-    nbRedBall = recognizeRedBalls(frame, redBalls)
+    redBalls = recognizeRedBalls(frame)
 
     #cv2.imshow('test',frame)
 
 millisecondsToWait = 1000 // 30
-
 if __name__ == "__main__":
     client = Client()
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
+    #parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
+    parser.add_argument('-s', '--server', action='store', default='192.168.1.134', type=str, help='address of server to connect')
     parser.add_argument('-p', '--port', action='store', default=2120, type=int, help='port on server')
     args = parser.parse_args()
     try:
