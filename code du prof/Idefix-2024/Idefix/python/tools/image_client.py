@@ -15,8 +15,10 @@ from encoding import Packer
 
 from jpeg_traits import JpegImage
 
-#all = True
-all = False
+all = True
+#all = False
+#local = True
+local = False
 
 class Client(TCPClientAbstraction):
     def __init__(self):
@@ -95,18 +97,26 @@ def recognizeRedBalls(frame):
         i = i + 1
 
 
-    # Dessiner les contours sur l'image originale
-    cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
 
 
     # Afficher les positions des balles rouges
     ##print("Positions des balles rouges : ", positions)
     # put a blue dot at each red ball position
+
     for each in redBalls:
         M = cv2.moments(each)
         cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (255, 0, 0), -1)
+        
+    #### PROBLME QUI MET LES REDBALLS A 0 ENTRE ICI
+    #cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
+    #### ET LA
 
     # Afficher l'image avec les contours
+    if len(redBalls) == 0:
+        print("Pas de balles rouges, pas normal")
+        # Dessiner les contours sur l'image originale
+        
+        #cv2.imshow('Contours', frame)
     cv2.imshow('Contours', frame)
     # Retourner le nombre de balles rouges
     print("nombre de balles rouges : ", len(redBalls))
@@ -116,6 +126,9 @@ def recognizeRedBalls(frame):
 
 ##traitement de l'image
 def processFrame(frame):
+    # verifier si l'image est bien recue
+    if frame is None:
+        return
     
     ##liste boulles rouges
     redBalls = recognizeRedBalls(frame)
@@ -126,8 +139,10 @@ millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
     client = Client()
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
-    #parser.add_argument('-s', '--server', action='store', default='192.168.1.134', type=str, help='address of server to connect')
+    if local:
+        parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
+    else:
+        parser.add_argument('-s', '--server', action='store', default='192.168.1.134', type=str, help='address of server to connect')
     parser.add_argument('-p', '--port', action='store', default=2120, type=int, help='port on server')
     args = parser.parse_args()
     try:
