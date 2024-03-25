@@ -38,7 +38,7 @@ def findPath(robot, target_angle, nb_points=500):
         for i in range(nb_points):
             t = (i + 1) / nb_points
             P0 = robot._position
-            P1 = robot._position + 5 * robot._size * Complex.FromPolar(1, robot._angle)
+            P1 = robot._position
             P2 = robot._target - 5 * robot._size * Complex.FromPolar(1, target_angle)
             P3 = robot._target
             path.append(bezier_curve(P0, P1, P2, P3, t))
@@ -144,9 +144,9 @@ while True:
     ####
     drawRobot(screen,robot,(0,255,0),(255,0,0),(0,0,255))
     ####
-    target_angle = target_angle + deltaTime
     if move==False:
         path = findPath(robot,target_angle)
+        target_angle = target_angle + deltaTime
     drawPath(screen,path,(255,255,255))
     ####
     if (robot._target is not None and (robot._target - robot._position).norm() > 1 and move==False) or targetTemp != robot._target:
@@ -165,10 +165,11 @@ while True:
             if targetPointOnPath >= len(path):
                 move = False
     
-    if rolling:
-        #change the target position
+    if rolling and move:
+        #change the robot._target position
         robot._target = robot._target + Complex.FromPolar(1,robot._angle) * deltaTime
 
+        
     ####
     robot.update(deltaTime)
     oldTime = newTime

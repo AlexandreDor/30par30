@@ -64,19 +64,19 @@ def recognizeRedBalls(frame):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Parcourir les contours pour récupérer les positions
-    positions = []
+    #positions = []
     for contour in contours:
         # Calculer le centre du contour
         M = cv2.moments(contour)
         if M["m00"] != 0:
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            positions.append((cX, cY))
+            #positions.append((cX, cY))
             #si le contour est trop petit, on l'ignore
-            if (cv2.contourArea(contour) < 2) and all == False:
+            if (cv2.contourArea(contour) < 5) and all == False:
                 continue
             # si le contour est trop grand, on l'ignore
-            if (cv2.contourArea(contour) > 60) and all == False:
+            if (cv2.contourArea(contour) > 100) and all == False:
                 continue
             # sinon, on l'ajoute à la liste des balles rouges
             redBalls.append(contour)
@@ -89,7 +89,7 @@ def recognizeRedBalls(frame):
         perimeter = cv2.arcLength(redBalls[i], True)
         approx = cv2.approxPolyDP(redBalls[i], 0.04 * perimeter, True)
         if (len(approx) < 3 or len(approx) > 10) and all == False:
-            print("DROP redBalls[",i,"] : ")
+            #print("DROP redBalls[",i,"] : ")
             redBalls.pop(i)
             i = i - 1
         i = i + 1
@@ -98,12 +98,16 @@ def recognizeRedBalls(frame):
     # Dessiner les contours sur l'image originale
     cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
 
-    # Afficher l'image avec les contours
-    cv2.imshow('Contours', frame)
 
     # Afficher les positions des balles rouges
     ##print("Positions des balles rouges : ", positions)
+    # put a blue dot at each red ball position
+    for each in redBalls:
+        M = cv2.moments(each)
+        cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (255, 0, 0), -1)
 
+    # Afficher l'image avec les contours
+    cv2.imshow('Contours', frame)
     # Retourner le nombre de balles rouges
     print("nombre de balles rouges : ", len(redBalls))
     return len(redBalls)
@@ -122,8 +126,8 @@ millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
     client = Client()
     parser = argparse.ArgumentParser()
-    #parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
-    parser.add_argument('-s', '--server', action='store', default='192.168.1.134', type=str, help='address of server to connect')
+    parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
+    #parser.add_argument('-s', '--server', action='store', default='192.168.1.134', type=str, help='address of server to connect')
     parser.add_argument('-p', '--port', action='store', default=2120, type=int, help='port on server')
     args = parser.parse_args()
     try:
