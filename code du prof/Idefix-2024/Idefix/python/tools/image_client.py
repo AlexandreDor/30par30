@@ -15,8 +15,8 @@ from encoding import Packer
 
 from jpeg_traits import JpegImage
 
-all = True
-#all = False
+#all = True
+all = False
 #local = True
 local = False
 
@@ -48,16 +48,21 @@ class Client(TCPClientAbstraction):
     def stop(self):
         self.finalize()
 
-def recognizeRedBalls(frame):
+def recognizeBalls(frame, color, minSize=25, maxSize=140):
     # Définir les plages de couleur pour le rouge en rgb
-    lower_red = np.array([0, 0, 100])
-    upper_red = np.array([85, 85, 255])
-    redBalls = []
+    if color == "red":
+        lower_mask = np.array([0, 0, 120])
+        upper_mask = np.array([85, 85, 255])
+    elif color == "blue":
+        lower_mask = np.array([90, 0, 0])
+        upper_mask = np.array([255, 85, 85])
+
+    Balls = []
 
 
 
     # Créer un masque pour les pixels rouges
-    mask = cv2.inRange(frame, lower_red, upper_red)
+    mask = cv2.inRange(frame, lower_mask, upper_mask)
 
     # Appliquer le masque à l'image originale
     masked_image = cv2.bitwise_and(frame, frame, mask=mask)
@@ -75,24 +80,30 @@ def recognizeRedBalls(frame):
             cY = int(M["m01"] / M["m00"])
             #positions.append((cX, cY))
             #si le contour est trop petit, on l'ignore
-            if (cv2.contourArea(contour) < 5) and all == False:
+            if (cv2.contourArea(contour) < minSize) and all == False:
+                #print("cv2.contourArea(contour) : ", cv2.contourArea(contour))
                 continue
+                
             # si le contour est trop grand, on l'ignore
-            if (cv2.contourArea(contour) > 100) and all == False:
+            elif (cv2.contourArea(contour) > maxSize) and all == False:
+                #print("cv2.contourArea(contour) : ", cv2.contourArea(contour))
                 continue
+                
             # sinon, on l'ajoute à la liste des balles rouges
-            redBalls.append(contour)
+            else :
+                #print("cv2.contourArea(contour) : ", cv2.contourArea(contour))
+                Balls.append(contour)
 
     #on verifie si les contour sont relativement rond et on retire de la liste si ce n'est pas le cas
-    #print ("len(redBalls) : ", len(redBalls))
+    #print ("len(Balls) : ", len(Balls))
     i = 0
-    while i < len(redBalls):
-        #print("redBalls[",i,"] : ", redBalls[i])
-        perimeter = cv2.arcLength(redBalls[i], True)
-        approx = cv2.approxPolyDP(redBalls[i], 0.04 * perimeter, True)
+    while i < len(Balls):
+        #print("Balls[",i,"] : ", Balls[i])
+        perimeter = cv2.arcLength(Balls[i], True)
+        approx = cv2.approxPolyDP(Balls[i], 0.04 * perimeter, True)
         if (len(approx) < 3 or len(approx) > 10) and all == False:
             #print("DROP redBalls[",i,"] : ")
-            redBalls.pop(i)
+            Balls.pop(i)
             i = i - 1
         i = i + 1
 
@@ -102,25 +113,29 @@ def recognizeRedBalls(frame):
     # Afficher les positions des balles rouges
     ##print("Positions des balles rouges : ", positions)
     # put a blue dot at each red ball position
+    # put a red dot at each blue ball position
 
-    for each in redBalls:
+    for each in Balls:
         M = cv2.moments(each)
-        cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (255, 0, 0), -1)
+        if color == "red":
+            cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (255, 0, 0), -1)
+        elif color == "blue":
+            cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (0, 0, 255), -1)
         
     #### PROBLME QUI MET LES REDBALLS A 0 ENTRE ICI
     #cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
     #### ET LA
 
     # Afficher l'image avec les contours
-    if len(redBalls) == 0:
-        print("Pas de balles rouges, pas normal")
+    if len(Balls) == 0:
+        print("Pas de balles ", color, ", pas normal")
         # Dessiner les contours sur l'image originale
         
         #cv2.imshow('Contours', frame)
     cv2.imshow('Contours', frame)
     # Retourner le nombre de balles rouges
-    print("nombre de balles rouges : ", len(redBalls))
-    return len(redBalls)
+    print("nombre de balles ", color, " : ", len(Balls))
+    return len(Balls)
     
     
 
@@ -131,7 +146,9 @@ def processFrame(frame):
         return
     
     ##liste boulles rouges
-    redBalls = recognizeRedBalls(frame)
+    redBalls = recognizeBalls(frame, "red", 25, 140)
+    ##liste boulles bleues
+    blueBalls = recognizeBalls(frame, "blue", 10, 100)
 
     #cv2.imshow('test',frame)
 
