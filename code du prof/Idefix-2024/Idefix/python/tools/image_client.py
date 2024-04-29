@@ -48,14 +48,14 @@ class Client(TCPClientAbstraction):
     def stop(self):
         self.finalize()
 
-def recognizeBalls(frame, color, minSize=25, maxSize=140):
+def recognizeBalls(frame, color, minSize=25, maxSize=140, returnFrame=None):
     # Définir les plages de couleur pour le rouge en rgb
     if color == "red":
-        lower_mask = np.array([0, 0, 120])
-        upper_mask = np.array([85, 85, 255])
+        lower_mask = np.array([0, 0, 150])
+        upper_mask = np.array([80, 80, 255])
     elif color == "blue":
-        lower_mask = np.array([90, 0, 0])
-        upper_mask = np.array([255, 85, 85])
+        lower_mask = np.array([110, 0, 0])
+        upper_mask = np.array([255, 150, 30])
 
     Balls = []
 
@@ -96,16 +96,19 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140):
 
     #on verifie si les contour sont relativement rond et on retire de la liste si ce n'est pas le cas
     #print ("len(Balls) : ", len(Balls))
-    i = 0
-    while i < len(Balls):
-        #print("Balls[",i,"] : ", Balls[i])
-        perimeter = cv2.arcLength(Balls[i], True)
-        approx = cv2.approxPolyDP(Balls[i], 0.04 * perimeter, True)
-        if (len(approx) < 3 or len(approx) > 10) and all == False:
-            #print("DROP redBalls[",i,"] : ")
-            Balls.pop(i)
-            i = i - 1
-        i = i + 1
+    if False:
+        i = 0
+        while i < len(Balls):
+            #print("Balls[",i,"] : ", Balls[i])
+            perimeter = cv2.arcLength(Balls[i], True)
+            approx = cv2.approxPolyDP(Balls[i], 0.04 * perimeter, True)
+            if (len(approx) < 5 or len(approx) > 10) and all == False:
+                print("DROP : ", len(approx))
+                Balls.pop(i)
+                i = i - 1
+            else:
+                print("KEEP : ", len(approx))
+            i = i + 1
 
 
 
@@ -118,9 +121,9 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140):
     for each in Balls:
         M = cv2.moments(each)
         if color == "red":
-            cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (255, 0, 0), -1)
+            cv2.circle(returnFrame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 5, (255, 0, 0), -1)
         elif color == "blue":
-            cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 1, (0, 0, 255), -1)
+            cv2.circle(returnFrame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 5, (0, 0, 255), -1)
         
     #### PROBLME QUI MET LES REDBALLS A 0 ENTRE ICI
     #cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
@@ -131,12 +134,32 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140):
         print("Pas de balles ", color, ", pas normal")
         # Dessiner les contours sur l'image originale
         
-        #cv2.imshow('Contours', frame)
-    cv2.imshow('Contours', frame)
+    #cv2.imshow('Contours', frame)
     # Retourner le nombre de balles rouges
     print("nombre de balles ", color, " : ", len(Balls))
     return len(Balls)
     
+
+
+def recognizeQRCode(frame, message, returnFrame=None):
+    # Créer un détecteur de QR Code
+    detector = cv2.QRCodeDetector()
+    # Détecter les QR Codes dans l'image
+    data, vertices, _ = detector.detectAndDecode(frame)
+    # trouve la position du QR Code contenant le message
+    if data == message:
+        # Dessiner un rectangle autour du QR Code
+        for i in range(len(vertices)):
+            cv2.line(returnFrame, tuple(vertices[i][0]), tuple(vertices[(i + 1) % len(vertices)][0]), (0, 255, 0), 2)
+    else:
+        print("QR Code non reconnu")
+
+    # Afficher l'image avec les QR Codes
+    #cv2.imshow('QR Codes', frame)
+
+    # Retourner le message du QR Code
+    print("Message du QR Code : ", data)
+    return data
     
 
 ##traitement de l'image
@@ -145,12 +168,25 @@ def processFrame(frame):
     if frame is None:
         return
     
-    ##liste boulles rouges
-    redBalls = recognizeBalls(frame, "red", 25, 140)
-    ##liste boulles bleues
-    blueBalls = recognizeBalls(frame, "blue", 10, 100)
+    ## TODO : gerer la copie de l'image et l'ecriture des detections sur une seule image
 
-    #cv2.imshow('test',frame)
+    startingframe = frame.copy()
+    
+    ##liste boulles rouges
+    redBalls = recognizeBalls(startingframe, "red", 80, 200, frame)
+    ##liste boulles bleues
+    blueBalls = recognizeBalls(startingframe, "blue", 10, 250, frame)
+    ## recherche QR Code
+    message = recognizeQRCode(startingframe, "30par30 qr robot1", frame)
+
+    # reduce the size of the image
+    frame = cv2.resize(frame, (1280, 720))
+    # Afficher l'image
+    cv2.imshow('frame', frame)
+
+    startingframe = cv2.resize(startingframe, (1280, 720))
+    # Afficher l'image
+    cv2.imshow('startingframe', startingframe)
 
 millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
@@ -161,7 +197,7 @@ if __name__ == "__main__":
     else:
         parser.add_argument('-s', '--server', action='store', default='192.168.1.134', type=str, help='address of server to connect')
     parser.add_argument('-p', '--port', action='store', default=2120, type=int, help='port on server')
-    args = parser.parse_args()
+    args = k=parser.parse_args()
     try:
         client.start(args)
         print("Client started")
