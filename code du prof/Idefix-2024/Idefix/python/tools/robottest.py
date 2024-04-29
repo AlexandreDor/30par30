@@ -38,6 +38,15 @@ def drawRobot(screen,robot,bodyColor,frontColor,wheelColor):
         pygame.draw.line(screen,(255,0,0),pos.tuple(),(pos + 1000.0 * front).tuple(),1)
     # draw a circle at the bot's home (400,0)
     pygame.draw.circle(screen,(0,255,0),toScreenPoint(Complex.Cart(400,0)).tuple(),10)
+    # Draw the path of the robot
+    for i in range(len(robot._path)-1):
+        pygame.draw.line(screen,(255,255,0),toScreenPoint(robot._path[i]).tuple(),toScreenPoint(robot._path[i+1]).tuple(),1)
+
+    # Draw the control points of the Bezier curve
+    for c in robot._control_points:
+        pygame.draw.circle(screen,(255,0,255),toScreenPoint(c).tuple(),3)
+
+        
 
     # draw the breadcrumbs
     for b in robot._breadcrumbs:
