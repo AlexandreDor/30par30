@@ -228,7 +228,7 @@ class TwoWheels:
         cos_theta = dot_product / (magnitude_AB * magnitude_BC)
         angle_radians = math.acos(cos_theta)
 
-        print(f"angle_radians: {angle_radians}")
+        #print(f"angle_radians: {angle_radians}")
 
         return angle_radians
 
