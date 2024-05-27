@@ -181,9 +181,9 @@ class TwoWheels:
             distance_to_bottom = math.sqrt((target.x - self._position.x)**2 + (target.y - 100 - self._position.y)**2)
             # if the robot is closer to the top of the target
             if distance_to_top < distance_to_bottom:
-                P2 = target + 100 * Complex.FromPolar(1, math.pi/2)
+                P2 = target + 200 * Complex.FromPolar(1, math.pi/2)
             else:
-                P2 = target + 100 * Complex.FromPolar(1, -math.pi/2)
+                P2 = target + 200 * Complex.FromPolar(1, -math.pi/2)
         else:
             P2 = target
 
