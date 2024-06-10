@@ -37,7 +37,7 @@ def drawRobot(screen,robot,bodyColor,frontColor,wheelColor):
         # draw a line streight in front of the robot
         pygame.draw.line(screen,(255,0,0),pos.tuple(),(pos + 1000.0 * front).tuple(),1)
     # draw a circle at the bot's home (400,0)
-    pygame.draw.circle(screen,(0,255,0),toScreenPoint(Complex.Cart(400,0)).tuple(),10)
+    pygame.draw.circle(screen,(0,255,0),toScreenPoint(Complex.Cart(300,0)).tuple(),10)
     # Draw the path of the robot
     for i in range(len(robot._path)-1):
         pygame.draw.line(screen,(255,255,0),toScreenPoint(robot._path[i]).tuple(),toScreenPoint(robot._path[i+1]).tuple(),1)
@@ -54,7 +54,7 @@ def drawRobot(screen,robot,bodyColor,frontColor,wheelColor):
         
 
 width, height = 800, 800
-robot = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(400,0))
+robot = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(300,0))
 timeMultiplicator = 10.0
 pygame.init()
 screen = pygame.display.set_mode((width,height))

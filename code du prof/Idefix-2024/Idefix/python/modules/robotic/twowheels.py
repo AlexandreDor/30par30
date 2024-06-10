@@ -14,9 +14,11 @@ class TwoWheels:
         self._targetOld = None
         self._home = home
         self._breadcrumbs = []
-        self._goHome = False
+        self._atHome = False
         self._path = []
         self._control_points = []
+        self.balls_in_claws = 0
+        self._backup_timer = 500
     def update(self,dt):
         front = Complex.FromPolar(1,self._angle)
         motionDir = dt * front
@@ -40,34 +42,41 @@ class TwoWheels:
 
         ##########################################################
 
-        self.atHome()
-        leftSpeed = 0
-        rightSpeed = 0
-
-        # if old target is different from the new target, calculate the path
-        if self._targetOld != self._target:
-            self._path = self.getPathToTarget()
-            self._targetOld = self._target
-            
-
-        # Move to the first target point
-        if len(self._path) > 0:
-            target = self._path[0]
-            if self.moveToPoint(target):
-                self._path.pop(0)
+        # if timer is not 0, decrement it, and reverse
+        if self._backup_timer > 0:
+            print("init_timer", self._backup_timer)
+            self._backup_timer -= 1
+            self.Backward(1000)
         else:
-            # nothing to do, go home
-            self.goHome()
-        
-        # If the robot is close enough to the target (20 pixels)
-        if self._target is not None:
-            distance = math.sqrt((self._target.x - self._position.x)**2 + (self._target.y - self._position.y)**2)
-            if distance < 20:
-                self._path = []
-                self._target = None
-                self.setSpeed(0,0)
-                # return home
+            self.atHome() # Actions to do at home
+
+            # if old target is different from the new target, calculate the path
+            if self._targetOld != self._target:
+                # If the robot has less than 3 balls in the claws, calculate the path to the target
+                if self.balls_in_claws < 3:
+                    self._path = self.getPathToTarget()
+                    self._targetOld = self._target
+                
+
+            # Move to the first target point
+            if len(self._path) > 0:
+                target = self._path[0]
+                if self.moveToPoint(target):
+                    self._path.pop(0)
+            else:
+                # nothing to do, go home
                 self.goHome()
+            
+            # If the robot is close enough to the target (20 pixels)
+            if self._target is not None:
+                self._atHome = False
+                distance = math.sqrt((self._target.x - self._position.x)**2 + (self._target.y - self._position.y)**2)
+                if distance < 20:
+                    self._path = []
+                    self._target = None
+                    self.balls_in_claws += 1
+                    # return home
+                    self.goHome()
 
         
     def setSpeed(self,left,right):
@@ -195,7 +204,6 @@ class TwoWheels:
         return [P1, P2, P3]
 
     def goHome(self):
-        self._goHome = True
         # calculate the path if the target and the last position are different (over 20 pixels)
         if self._path == []:
             self._path = self.getpathToHome()
@@ -204,16 +212,12 @@ class TwoWheels:
     def atHome(self):
         # If robot is in a 10 pixel radius of the home position
         distance = math.sqrt((self._home.x - self._position.x)**2 + (self._home.y - self._position.y)**2)
-        if distance < 10:
-            # Clear the path and breadcrumbs
+        if distance < 20:
+            self._atHome = True
+            self.balls_in_claws = 0
             self._path = []
             self._breadcrumbs = []
-            # Rotate the robot to face the terrain
-            if self._angle > 0:
-                self.TurnLeft(1000)
-            else:
-                self.TurnRight(1000)
-            return True
+            self._backup_timer = 500
 
     def angle_between_points(self, A, B, C):
         xAB = B.x - A.x
