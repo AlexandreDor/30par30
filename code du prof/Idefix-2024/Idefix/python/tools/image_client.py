@@ -9,6 +9,9 @@ sys.path.append(full_path)
 import argparse
 import cv2
 import numpy as np
+import imutils
+from cv2 import aruco
+
 
 from networking import TCPClientAbstraction, DisconnectedException
 from encoding import Packer
@@ -19,6 +22,12 @@ from jpeg_traits import JpegImage
 all = False
 #local = True
 local = False
+
+robot1_position = (0, 0)
+robot2_position = (0, 0)
+
+robot1_angle = 0
+robot2_angle = 0
 
 class Client(TCPClientAbstraction):
     def __init__(self):
@@ -48,14 +57,14 @@ class Client(TCPClientAbstraction):
     def stop(self):
         self.finalize()
 
-def recognizeBalls(frame, color, minSize=25, maxSize=140, returnFrame=None):
+def recognizeBalls(frame, color, minSize=25, maxSize=140):
     # Définir les plages de couleur pour le rouge en rgb
     if color == "red":
         lower_mask = np.array([0, 0, 150])
         upper_mask = np.array([80, 80, 255])
     elif color == "blue":
-        lower_mask = np.array([110, 0, 0])
-        upper_mask = np.array([255, 150, 30])
+        lower_mask = np.array([100, 0, 0])
+        upper_mask = np.array([255, 150, 40])
 
     Balls = []
 
@@ -113,17 +122,7 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140, returnFrame=None):
 
 
 
-    # Afficher les positions des balles rouges
-    ##print("Positions des balles rouges : ", positions)
-    # put a blue dot at each red ball position
-    # put a red dot at each blue ball position
-
-    for each in Balls:
-        M = cv2.moments(each)
-        if color == "red":
-            cv2.circle(returnFrame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 5, (255, 0, 0), -1)
-        elif color == "blue":
-            cv2.circle(returnFrame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 5, (0, 0, 255), -1)
+    
         
     #### PROBLME QUI MET LES REDBALLS A 0 ENTRE ICI
     #cv2.drawContours(frame, redBalls, -1, (0, 255, 0), 2)
@@ -137,30 +136,55 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140, returnFrame=None):
     #cv2.imshow('Contours', frame)
     # Retourner le nombre de balles rouges
     print("nombre de balles ", color, " : ", len(Balls))
-    return len(Balls)
+    return Balls
     
 
 
-def recognizeQRCode(frame, message, returnFrame=None):
-    # Créer un détecteur de QR Code
-    detector = cv2.QRCodeDetector()
-    # Détecter les QR Codes dans l'image
-    data, vertices, _ = detector.detectAndDecode(frame)
-    # trouve la position du QR Code contenant le message
-    if data == message:
-        # Dessiner un rectangle autour du QR Code
-        for i in range(len(vertices)):
-            cv2.line(returnFrame, tuple(vertices[i][0]), tuple(vertices[(i + 1) % len(vertices)][0]), (0, 255, 0), 2)
-    else:
-        print("QR Code non reconnu")
+def recognizeArucoCode(frame, id, position, angle):
+    # Créer un détecteur de code arixo
+    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
+    parameters =  cv2.aruco.DetectorParameters()
+    detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-    # Afficher l'image avec les QR Codes
-    #cv2.imshow('QR Codes', frame)
+    # Détecter les codes aruco dans l'image
+    markerCorners, markerId, rejectedCandidates = detector.detectMarkers(frame)
 
-    # Retourner le message du QR Code
-    print("Message du QR Code : ", data)
-    return data
-    
+    # Si un code aruco est détecté
+    if markerId is not None:
+        print(len(markerId), "codes aruco détectés")
+        print("Code aruco détecté : ", markerId)
+        for i in range(len(markerId)):
+            if markerId[i] == id:
+                #print("Code aruco détecté : ", markerId)
+
+                # Dessiner le contour du code aruco de l'id
+                cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerId)
+
+                # Calculer la position et l'angle du robot
+                position = (int(markerCorners[i][0][0][0]), int(markerCorners[i][0][0][1]))
+                #print("Position du robot : ", position)
+
+                # Calculer l'angle du robot a partir des 4 coins du code aruco
+                angle = np.arctan2(markerCorners[i][0][1][1] - markerCorners[i][0][0][1], markerCorners[i][0][1][0] - markerCorners[i][0][0][0])
+
+                # Dessiner la position et l'angle du robot sur l'image
+                cv2.putText(frame, "Position : " + str(position), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(frame, "Angle : " + str(angle), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                # mettre une fleche pour montrer l'angle
+                
+                # Dessiner la fleche
+                cv2.arrowedLine(frame, (position[0], position[1]), (int(position[0] + 50 * np.cos(angle)),int( position[1] + 50 * np.sin(angle))), (0, 255, 0), 2)
+
+                
+
+
+                # Afficher l'image
+                cv2.imshow('frame', frame)
+                
+
+
+                return markerId[i]
 
 ##traitement de l'image
 def processFrame(frame):
@@ -168,25 +192,34 @@ def processFrame(frame):
     if frame is None:
         return
     
-    ## TODO : gerer la copie de l'image et l'ecriture des detections sur une seule image
-
-    startingframe = frame.copy()
+    
     
     ##liste boulles rouges
-    redBalls = recognizeBalls(startingframe, "red", 80, 200, frame)
+    #redBalls = recognizeBalls(frame, "red", 5, 200)
     ##liste boulles bleues
-    blueBalls = recognizeBalls(startingframe, "blue", 10, 250, frame)
+    #blueBalls = recognizeBalls(frame, "blue", 5, 250)
     ## recherche QR Code
-    message = recognizeQRCode(startingframe, "30par30 qr robot1", frame)
+    recognizeArucoCode(frame, 30, robot1_position, robot1_angle)
+
+    # Afficher l'image avec les détections
+    # Afficher les positions des balles rouges
+    ##print("Positions des balles rouges : ", positions)
+    # put a blue dot at each red ball position
+    # put a red dot at each blue ball position
+
+    '''
+    for each in redBalls:
+        M = cv2.moments(each)
+        cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (255, 255, 0), -1)
+    for each in blueBalls:
+        M = cv2.moments(each)
+        cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (0, 255, 255), -1)
+    '''
 
     # reduce the size of the image
     frame = cv2.resize(frame, (1280, 720))
     # Afficher l'image
     cv2.imshow('frame', frame)
-
-    startingframe = cv2.resize(startingframe, (1280, 720))
-    # Afficher l'image
-    cv2.imshow('startingframe', startingframe)
 
 millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
