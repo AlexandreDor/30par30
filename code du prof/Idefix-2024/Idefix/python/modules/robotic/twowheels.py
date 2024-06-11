@@ -3,6 +3,9 @@ import math
 from geometry import Complex
 import random
 
+robot_variant = 1
+max_ball = 3
+
 class TwoWheels:
     def __init__(self,pos,angle,size,home):
         self._position = pos
@@ -19,6 +22,14 @@ class TwoWheels:
         self._control_points = []
         self.balls_in_claws = 0
         self._backup_timer = 500
+        self._stored_mines = 4
+        self._close_claw = 100
+        self._mine_timer = 3
+        if robot_variant == 1:
+            self._close_claw = 1
+        else:
+            self._close_claw = 3
+
     def update(self,dt):
         front = Complex.FromPolar(1,self._angle)
         motionDir = dt * front
@@ -34,6 +45,15 @@ class TwoWheels:
         self._position = newPosition
         self._angle = self._angle + deltaAngle
 
+        # release claw timer
+        if robot_variant == 1:
+            if self._close_claw == 1:
+                print("Claw ready to use!")
+                self._close_claw = 0
+            elif self._close_claw > 0:
+                self._close_claw -= 1
+
+
         ##########################################################
 
         # have a random chance to drop a breadcrumb
@@ -44,7 +64,7 @@ class TwoWheels:
 
         # if timer is not 0, decrement it, and reverse
         if self._backup_timer > 0:
-            print("init_timer", self._backup_timer)
+            # print("init_timer", self._backup_timer)
             self._backup_timer -= 1
             self.Backward(1000)
         else:
@@ -53,7 +73,7 @@ class TwoWheels:
             # if old target is different from the new target, calculate the path
             if self._targetOld != self._target:
                 # If the robot has less than 3 balls in the claws, calculate the path to the target
-                if self.balls_in_claws < 3:
+                if self.balls_in_claws < max_ball:
                     self._path = self.getPathToTarget()
                     self._targetOld = self._target
                 
@@ -71,10 +91,16 @@ class TwoWheels:
             if self._target is not None:
                 self._atHome = False
                 distance = math.sqrt((self._target.x - self._position.x)**2 + (self._target.y - self._position.y)**2)
+                if robot_variant == 1:
+                    # open claw
+                    self.openClaw()
                 if distance < 20:
                     self._path = []
                     self._target = None
                     self.balls_in_claws += 1
+                    if robot_variant == 1:
+                        # close claw
+                        self.closeClaw()
                     # return home
                     self.goHome()
 
@@ -96,6 +122,14 @@ class TwoWheels:
         self.setSpeed(speed,0)
     def reach(self,target,dt):
         self._target = target
+    def depositMine(self):
+        print(f"Try Mine deposit at {self._position}, timer: {self._mine_timer}, mines: {self._stored_mines}")
+        if self._stored_mines > 0:
+            self._mine_timer -= 1
+            if self._mine_timer < 1:
+                print(f"Mine deposited at {self._position}")
+                self._stored_mines -= 1
+                self._mine_timer = 3
     
     def moveToPoint(self, target):
         if target is not None:
@@ -130,6 +164,16 @@ class TwoWheels:
             distance = math.sqrt((target.x - position.x)**2 + (target.y - position.y)**2)
             if distance < 20:
                 return True
+
+    def openClaw(self):
+        if self._close_claw == 0:
+            self._close_claw = -100
+            print("Opennig claw...")
+    
+    def closeClaw(self):
+        if self._close_claw == 0:
+            self._close_claw = 100
+            print("Closing claw...")
 
     def getPathToTarget(self):
         if self._target is None:
@@ -204,6 +248,8 @@ class TwoWheels:
         return [P1, P2, P3]
 
     def goHome(self):
+        if robot_variant == 1:
+            self.depositMine()
         # calculate the path if the target and the last position are different (over 20 pixels)
         if self._path == []:
             self._path = self.getpathToHome()
