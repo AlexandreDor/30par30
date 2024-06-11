@@ -25,9 +25,12 @@ local = False
 
 robot1_position = (0, 0)
 robot2_position = (0, 0)
+selected_red_ball_position = (0, 0)
 
 robot1_angle = 0
 robot2_angle = 0
+
+
 
 class Client(TCPClientAbstraction):
     def __init__(self):
@@ -135,12 +138,17 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140):
         
     #cv2.imshow('Contours', frame)
     # Retourner le nombre de balles rouges
-    print("nombre de balles ", color, " : ", len(Balls))
+    #print("nombre de balles ", color, " : ", len(Balls))
     return Balls
     
 
 
-def recognizeArucoCode(frame, id, position, angle):
+def recognizeArucoCode(frame, id):
+    global robot1_position
+    global robot1_angle
+    global robot2_position
+    global robot2_angle
+    
     # Créer un détecteur de code arixo
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
     parameters =  cv2.aruco.DetectorParameters()
@@ -152,69 +160,90 @@ def recognizeArucoCode(frame, id, position, angle):
     # Si un code aruco est détecté
     if markerId is not None:
         print(len(markerId), "codes aruco détectés")
-        print("Code aruco détecté : ", markerId)
+        #print("Code aruco détecté : ", markerId)
         for i in range(len(markerId)):
             if markerId[i] == id:
                 #print("Code aruco détecté : ", markerId)
 
                 # Dessiner le contour du code aruco de l'id
-                cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerId)
+                #cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerId)
 
                 # Calculer la position et l'angle du robot
-                position = (int(markerCorners[i][0][0][0]), int(markerCorners[i][0][0][1]))
+                robot1_position = (int(markerCorners[i][0][0][0]), int(markerCorners[i][0][0][1]))
                 #print("Position du robot : ", position)
 
                 # Calculer l'angle du robot a partir des 4 coins du code aruco
-                angle = np.arctan2(markerCorners[i][0][1][1] - markerCorners[i][0][0][1], markerCorners[i][0][1][0] - markerCorners[i][0][0][0])
+                robot1_angle = np.arctan2(markerCorners[i][0][1][1] - markerCorners[i][0][0][1], markerCorners[i][0][1][0] - markerCorners[i][0][0][0])
 
                 # Dessiner la position et l'angle du robot sur l'image
-                cv2.putText(frame, "Position : " + str(position), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                cv2.putText(frame, "Angle : " + str(angle), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                #cv2.putText(frame, "Position : " + str(robot1_position), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                #cv2.putText(frame, "Angle : " + str(robot1_angle), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
                 # mettre une fleche pour montrer l'angle
                 
                 # Dessiner la fleche
-                cv2.arrowedLine(frame, (position[0], position[1]), (int(position[0] + 50 * np.cos(angle)),int( position[1] + 50 * np.sin(angle))), (0, 255, 0), 2)
-
-                
-
-
-                # Afficher l'image
-                cv2.imshow('frame', frame)
-                
-
+                #cv2.arrowedLine(frame, (robot1_position[0], robot1_position[1]), (int(robot1_position[0] + 50 * np.cos(robot1_angle)),int(robot1_position[1] + 50 * np.sin(robot1_angle))), (0, 255, 0), 2)
 
                 return markerId[i]
 
 ##traitement de l'image
 def processFrame(frame):
+    global robot1_position
+    global robot1_angle
+    global selected_red_ball_position
     # verifier si l'image est bien recue
     if frame is None:
         return
+
+    startingframe = frame.copy()
+    selected_red_ball_position = (0, 0)
     
     
     
     ##liste boulles rouges
-    #redBalls = recognizeBalls(frame, "red", 5, 200)
+    redBalls = recognizeBalls(startingframe.copy(), "red", 5, 200)
     ##liste boulles bleues
-    #blueBalls = recognizeBalls(frame, "blue", 5, 250)
+    #blueBalls = recognizeBalls(startingframe.copy(), "blue", 5, 250)
     ## recherche QR Code
-    recognizeArucoCode(frame, 30, robot1_position, robot1_angle)
+    recognizeArucoCode(startingframe.copy(), 30)
 
     # Afficher l'image avec les détections
     # Afficher les positions des balles rouges
     ##print("Positions des balles rouges : ", positions)
     # put a blue dot at each red ball position
     # put a red dot at each blue ball position
-
-    '''
+    
     for each in redBalls:
         M = cv2.moments(each)
         cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (255, 255, 0), -1)
-    for each in blueBalls:
-        M = cv2.moments(each)
-        cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (0, 255, 255), -1)
-    '''
+    #for each in blueBalls:
+    #    M = cv2.moments(each)
+    #    cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (0, 255, 255), -1)
+
+
+    # print the position of the robot1
+    cv2.putText(frame, "Robot1 : " + str(robot1_position), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.putText(frame, "Robot1 angle : " + str(robot1_angle), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+    # put a red dot at the position of the robot1
+    cv2.circle(frame, robot1_position, 2, (0, 0, 255), -1)
+
+    #put an arrow to show the angle of the robot1
+    cv2.arrowedLine(frame, robot1_position, (int(robot1_position[0] + 50 * np.cos(robot1_angle)), int(robot1_position[1] + 50 * np.sin(robot1_angle))), (0, 255, 0), 2)
+    
+
+    # select the closest red ball to the robot1
+    for each in redBalls:
+        red_ball_position = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        if (selected_red_ball_position == (0, 0)) | (np.linalg.norm(np.array(red_ball_position) - np.array(robot1_position)) < np.linalg.norm(np.array(selected_red_ball_position) - np.array(robot1_position))):
+            selected_red_ball_position = red_ball_position
+        
+
+    # draw a green dot at the selected red ball position
+    cv2.circle(frame, selected_red_ball_position, 20, (0, 255, 0), 2)
+
+    
+    
 
     # reduce the size of the image
     frame = cv2.resize(frame, (1280, 720))
