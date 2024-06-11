@@ -30,6 +30,7 @@ selected_red_ball_position = (0, 0)
 robot1_angle = 0
 robot2_angle = 0
 
+cameraSelected = 1
 
 
 class Client(TCPClientAbstraction):
@@ -191,21 +192,41 @@ def processFrame(frame):
     global robot1_position
     global robot1_angle
     global selected_red_ball_position
+    global cameraSelected
+
     # verifier si l'image est bien recue
     if frame is None:
         return
 
+    if cameraSelected > 4:
+        cameraSelected = 0
+
     startingframe = frame.copy()
     selected_red_ball_position = (0, 0)
-    
-    
+
+    frameresolution = startingframe.shape
+    print("frame resolution : ", frameresolution)    
+    # ne prendre que le cadran de la camera selectionnée
+    if cameraSelected == 1:
+        camera = startingframe[0:frameresolution[0]//2, 0:frameresolution[1]//2]
+    elif cameraSelected == 2:
+        camera = startingframe[frameresolution[0]//2:frameresolution[0], 0:frameresolution[1]//2]
+    elif cameraSelected == 3:
+        camera = startingframe[0:frameresolution[0]//2, frameresolution[1]//2:frameresolution[1]]
+    elif cameraSelected == 4:
+        camera = startingframe[frameresolution[0]//2:frameresolution[0], frameresolution[1]//2:frameresolution[1]]
+    else:
+        camera = startingframe
+
+    drawframe = camera.copy()
+    workingframe = camera.copy()
     
     ##liste boulles rouges
-    redBalls = recognizeBalls(startingframe.copy(), "red", 5, 200)
+    redBalls = recognizeBalls(workingframe.copy(), "red", 5, 200)
     ##liste boulles bleues
-    #blueBalls = recognizeBalls(startingframe.copy(), "blue", 5, 250)
+    #blueBalls = recognizeBalls(workingframe.copy(), "blue", 5, 250)
     ## recherche QR Code
-    recognizeArucoCode(startingframe.copy(), 30)
+    recognizeArucoCode(workingframe.copy(), 30)
 
     # Afficher l'image avec les détections
     # Afficher les positions des balles rouges
@@ -215,21 +236,21 @@ def processFrame(frame):
     
     for each in redBalls:
         M = cv2.moments(each)
-        cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (255, 255, 0), -1)
+        cv2.circle(drawframe, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (255, 255, 0), -1)
     #for each in blueBalls:
     #    M = cv2.moments(each)
-    #    cv2.circle(frame, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (0, 255, 255), -1)
+    #    cv2.circle(drawframe, (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), 2, (0, 255, 255), -1)
 
 
     # print the position of the robot1
-    cv2.putText(frame, "Robot1 : " + str(robot1_position), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.putText(frame, "Robot1 angle : " + str(robot1_angle), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.putText(drawframe, "Robot1 : " + str(robot1_position), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.putText(drawframe, "Robot1 angle : " + str(robot1_angle), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     # put a red dot at the position of the robot1
-    cv2.circle(frame, robot1_position, 2, (0, 0, 255), -1)
+    cv2.circle(drawframe, robot1_position, 2, (0, 0, 255), -1)
 
     #put an arrow to show the angle of the robot1
-    cv2.arrowedLine(frame, robot1_position, (int(robot1_position[0] + 50 * np.cos(robot1_angle)), int(robot1_position[1] + 50 * np.sin(robot1_angle))), (0, 255, 0), 2)
+    cv2.arrowedLine(drawframe, robot1_position, (int(robot1_position[0] + 50 * np.cos(robot1_angle)), int(robot1_position[1] + 50 * np.sin(robot1_angle))), (0, 255, 0), 2)
     
 
     # select the closest red ball to the robot1
@@ -240,15 +261,15 @@ def processFrame(frame):
         
 
     # draw a green dot at the selected red ball position
-    cv2.circle(frame, selected_red_ball_position, 20, (0, 255, 0), 2)
+    cv2.circle(drawframe, selected_red_ball_position, 20, (0, 255, 0), 2)
 
     
     
 
     # reduce the size of the image
-    frame = cv2.resize(frame, (1280, 720))
+    frame = cv2.resize(drawframe, (1280, 720))
     # Afficher l'image
-    cv2.imshow('frame', frame)
+    cv2.imshow('camera', frame)
 
 millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
