@@ -198,7 +198,7 @@ def processFrame(frame):
     if frame is None:
         return
 
-    if cameraSelected > 4:
+    if cameraSelected > 4 or cameraSelected < 0:
         cameraSelected = 0
 
     startingframe = frame.copy()
