@@ -11,12 +11,18 @@ import cv2
 import numpy as np
 import imutils
 from cv2 import aruco
+from robotic import TwoWheels
+from geometry import Complex
+import math
+from servtestsocket import controller
 
 
 from networking import TCPClientAbstraction, DisconnectedException
 from encoding import Packer
 
 from jpeg_traits import JpegImage
+
+
 
 #all = True
 all = False
@@ -30,7 +36,11 @@ selected_red_ball_position = (0, 0)
 robot1_angle = 0
 robot2_angle = 0
 
-cameraSelected = 1
+cameraSelected = 0
+robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(300,0))
+deltaTime = 100
+control = controller()
+
 
 
 class Client(TCPClientAbstraction):
@@ -193,6 +203,9 @@ def processFrame(frame):
     global robot1_angle
     global selected_red_ball_position
     global cameraSelected
+    global robotcontroller
+    global deltaTime
+    global control
 
     # verifier si l'image est bien recue
     if frame is None:
@@ -210,9 +223,9 @@ def processFrame(frame):
     if cameraSelected == 1:
         camera = startingframe[0:frameresolution[0]//2, 0:frameresolution[1]//2]
     elif cameraSelected == 2:
-        camera = startingframe[frameresolution[0]//2:frameresolution[0], 0:frameresolution[1]//2]
-    elif cameraSelected == 3:
         camera = startingframe[0:frameresolution[0]//2, frameresolution[1]//2:frameresolution[1]]
+    elif cameraSelected == 3:
+        camera = startingframe[frameresolution[0]//2:frameresolution[0], 0:frameresolution[1]//2]
     elif cameraSelected == 4:
         camera = startingframe[frameresolution[0]//2:frameresolution[0], frameresolution[1]//2:frameresolution[1]]
     else:
@@ -255,8 +268,9 @@ def processFrame(frame):
 
     # select the closest red ball to the robot1
     for each in redBalls:
+        M = cv2.moments(each)
         red_ball_position = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-        if (selected_red_ball_position == (0, 0)) | (np.linalg.norm(np.array(red_ball_position) - np.array(robot1_position)) < np.linalg.norm(np.array(selected_red_ball_position) - np.array(robot1_position))):
+        if (selected_red_ball_position == (0, 0)) | (np.sqrt((red_ball_position[0] - robot1_position[0])**2 + (red_ball_position[1] - robot1_position[1])**2) < np.sqrt((selected_red_ball_position[0] - robot1_position[0])**2 + (selected_red_ball_position[1] - robot1_position[1])**2)):
             selected_red_ball_position = red_ball_position
         
 
@@ -268,8 +282,23 @@ def processFrame(frame):
 
     # reduce the size of the image
     frame = cv2.resize(drawframe, (1280, 720))
+
+    #move the robot to the selected red ball
+    target = Complex.Cart(selected_red_ball_position[0], selected_red_ball_position[1])
+    robotcontroller.reach(target,deltaTime)
+    robotcontroller.update(deltaTime)
+
+    print("robotcontroller._leftSpeed : ", int(robotcontroller._leftSpeed))
+    print("robotcontroller._rightSpeed : ", int(robotcontroller._rightSpeed))
+
+    control.motorControl(int(robotcontroller._leftSpeed), int(robotcontroller._rightSpeed))
+
+    print("sedeaoieqgiofqro")
+    
     # Afficher l'image
     cv2.imshow('camera', frame)
+
+    
 
 millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
@@ -290,6 +319,7 @@ if __name__ == "__main__":
             key = cv2.waitKey(millisecondsToWait) & 0x0FF
             if key == ord('q'): break
         client.stop ()
+        control.end()
     except DisconnectedException:
         print("Plantage du serveur et/ou de la connexion")
         client.stop()
