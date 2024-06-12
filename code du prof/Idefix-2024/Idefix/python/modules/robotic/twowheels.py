@@ -21,7 +21,7 @@ class TwoWheels:
         self._path = []
         self._control_points = []
         self.balls_in_claws = 0
-        self._backup_timer = 500
+        self._backup_timer = 50
         self._stored_mines = 4
         self._close_claw = 100
         self._mine_timer = 3
@@ -106,8 +106,9 @@ class TwoWheels:
 
         
     def setSpeed(self,left,right):
-        self._leftSpeed = left
-        self._rightSpeed = right
+        print(f"Setting speed to {left}, {right}")
+        self._leftSpeed = left * 10
+        self._rightSpeed = right * 10
     def Forward(self,speed):
         self.setSpeed(speed,speed)
     def Backward(self,speed):
@@ -117,9 +118,9 @@ class TwoWheels:
     def AntiClockwise(self,speed):
         self.setSpeed(-speed,speed)
     def TurnLeft(self,speed):
-        self.setSpeed(0,speed)
+        self.setSpeed(speed / 3,speed)
     def TurnRight(self,speed):
-        self.setSpeed(speed,0)
+        self.setSpeed(speed / 3,0)
     def reach(self,target,dt):
         self._target = target
     def depositMine(self):
@@ -154,7 +155,7 @@ class TwoWheels:
             # if the angle difference is greater than math.pi, turn the robot in the opposite direction
             if angle_difference > math.pi:
                 self.TurnRight(80)
-            elif angle_difference > 0.1:
+            elif angle_difference > 0.2:
                 self.TurnLeft(80)
             else:
                 # if the angle difference is less than 0.1, move the robot forward
@@ -263,7 +264,7 @@ class TwoWheels:
             self.balls_in_claws = 0
             self._path = []
             self._breadcrumbs = []
-            self._backup_timer = 500
+            self._backup_timer = 50
 
     def angle_between_points(self, A, B, C):
         xAB = B.x - A.x
