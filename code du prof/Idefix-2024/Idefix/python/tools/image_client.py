@@ -37,7 +37,7 @@ robot1_angle = 0
 robot2_angle = 0
 
 cameraSelected = 0
-robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(300,0))
+robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(360,640))
 deltaTime = 100
 control = controller()
 
