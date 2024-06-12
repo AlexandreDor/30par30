@@ -265,7 +265,7 @@ class TwoWheels:
             self.balls_in_claws = 0
             self._path = []
             self._breadcrumbs = []
-            self._backup_timer = 50
+            self._backup_timer = 100
 
     def angle_between_points(self, A, B, C):
         xAB = B.x - A.x
