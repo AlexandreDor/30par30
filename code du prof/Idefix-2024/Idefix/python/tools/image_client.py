@@ -39,7 +39,7 @@ selected_red_ball_position = (0, 0)
 robot1_angle = 0
 robot2_angle = 0
 
-cameraSelected = 0
+cameraSelected = 2
 robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(80,80))
 deltaTime = 10
 if ronbotOn:
@@ -215,7 +215,7 @@ def recognizeArucoCode(frame, id):
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
     # augmenter le contraste
-    #frame = cv2.convertScaleAbs(frame, alpha=1.5, beta=0)
+    frame = cv2.convertScaleAbs(frame, alpha=1.5, beta=0)
 
     # Détecter les codes aruco dans l'image
     markerCorners, markerId, rejectedCandidates = detector.detectMarkers(frame)
@@ -331,7 +331,7 @@ def processFrame(frame):
 
 
     # select the closest red ball to the robot1
-    if selected_red_ball_position == (0, 0):
+    if selected_red_ball_position == (0, 0) and robot1_position != (0, 0):
         for each in redBalls:
             M = cv2.moments(each)
             red_ball_position = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
