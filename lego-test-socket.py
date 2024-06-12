@@ -114,8 +114,8 @@ def client_program():
                 numbers[1] = 100
             if numbers[1] < -100:
                 numbers[1] = -100
-            numbers[0] = numbers[0] * -0.5
-            numbers[1] = numbers[1] * -0.5
+            numbers[0] = numbers[0] * -1
+            numbers[1] = numbers[1] * -1
             setSpeed(numbers[0], numbers[1])
 
     client_socket.close()  # close the connection

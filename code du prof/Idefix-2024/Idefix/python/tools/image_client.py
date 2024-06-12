@@ -279,7 +279,6 @@ def processFrame(frame):
         cameraSelected = 0
 
     startingframe = frame.copy()
-    selected_red_ball_position = (0, 0)
 
     frameresolution = startingframe.shape
     print("frame resolution : ", frameresolution)    
