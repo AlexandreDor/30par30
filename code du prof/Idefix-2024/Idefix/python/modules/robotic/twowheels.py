@@ -67,7 +67,7 @@ class TwoWheels:
         if self._backup_timer > 0:
             # print("init_timer", self._backup_timer)
             self._backup_timer -= 1
-            self.Backward(1000)
+            self.Backward(100)
         else:
             self.atHome() # Actions to do at home
 
@@ -154,12 +154,12 @@ class TwoWheels:
 
             # if the angle difference is greater than math.pi, turn the robot in the opposite direction
             if angle_difference > math.pi:
-                self.TurnRight(1000)
+                self.TurnRight(80)
             elif angle_difference > 0.1:
-                self.TurnLeft(1000)
+                self.TurnLeft(80)
             else:
                 # if the angle difference is less than 0.1, move the robot forward
-                self.Forward(1000)
+                self.Forward(80)
             
             # return true if the robot is close enough to the target
             distance = math.sqrt((target.x - position.x)**2 + (target.y - position.y)**2)
