@@ -15,6 +15,7 @@ from robotic import TwoWheels
 from geometry import Complex
 import math
 from servtestsocket import controller
+import pygame
 
 
 from networking import TCPClientAbstraction, DisconnectedException
@@ -42,8 +43,10 @@ deltaTime = 10
 control = controller()
 
 lastCommand = ""
+screen = None
+oldTime = 0
 
-
+width, height = 800, 800
 
 class Client(TCPClientAbstraction):
     def __init__(self):
@@ -155,6 +158,47 @@ def recognizeBalls(frame, color, minSize=25, maxSize=140):
     return Balls
     
 
+def toScreenPoint(c):
+    return Complex.Cart(c.x + width / 2.0, -c.y + height / 2.0)
+
+def toScreenVector(c):
+    return Complex.Cart(c.x, -c.y)
+
+def fromScreenPoint(c):
+    return Complex.Cart(c.x - width / 2.0, -c.y + height / 2.0)
+
+def drawRobot(screen,robot,bodyColor,frontColor,wheelColor):
+    front = toScreenVector(Complex.FromPolar(1,robot._angle).normalize())
+    toLeft = -1.0 * front.perp()
+    pos = toScreenPoint(Complex.Cart(robot._position.x,robot._position.y))
+    tool = pos + (robot._size / 2.0) * front
+    left = pos + (robot._size / 2.0) * toLeft
+    right = pos - (robot._size / 2.0) * toLeft
+    pygame.draw.circle(screen,bodyColor,pos.tuple(),robot._size/2.0)
+    pygame.draw.line(screen,frontColor,pos.tuple(),tool.tuple(),1)
+    pygame.draw.circle(screen,wheelColor,left.tuple(),3.0)
+    pygame.draw.circle(screen,wheelColor,right.tuple(),3.0)
+    if robot._target is not None:
+        pygame.draw.circle(screen,(255,0,0),toScreenPoint(robot._target).tuple(),3)
+        # draw a line streight in front of the robot
+        pygame.draw.line(screen,(255,0,0),pos.tuple(),(pos + 1000.0 * front).tuple(),1)
+    # draw a circle at the bot's home (400,0)
+    pygame.draw.circle(screen,(0,255,0),toScreenPoint(Complex.Cart(300,0)).tuple(),10)
+    # Draw the path of the robot
+    for i in range(len(robot._path)-1):
+        pygame.draw.line(screen,(255,255,0),toScreenPoint(robot._path[i]).tuple(),toScreenPoint(robot._path[i+1]).tuple(),1)
+
+    # Draw the control points of the Bezier curve
+    for c in robot._control_points:
+        pygame.draw.circle(screen,(255,0,255),toScreenPoint(c).tuple(),3)
+
+        
+
+    # draw the breadcrumbs
+    for b in robot._breadcrumbs:
+        pygame.draw.circle(screen,(255,255,255),toScreenPoint(b).tuple(),2)
+        
+
 
 def recognizeArucoCode(frame, id):
     global robot1_position
@@ -199,8 +243,6 @@ def recognizeArucoCode(frame, id):
 
                 return markerId[i]
 
-def toScreenPoint(c):
-    return Complex.Cart(c[0], c[1])
 
 ##traitement de l'image
 def processFrame(frame):
@@ -212,6 +254,10 @@ def processFrame(frame):
     global deltaTime
     global control
     global lastCommand
+    global screen
+    global oldTime
+    global width
+    global height
 
     # verifier si l'image est bien recue
     if frame is None:
@@ -271,19 +317,6 @@ def processFrame(frame):
     #put an arrow to show the angle of the robot1
     cv2.arrowedLine(drawframe, robot1_position, (int(robot1_position[0] + 50 * np.cos(robot1_angle)), int(robot1_position[1] + 50 * np.sin(robot1_angle))), (0, 255, 0), 2)
     
-    if robotcontroller._target is not None:
-        # Draw target circle
-        cv2.circle(drawframe, (0, 0, 255), toScreenPoint(robotcontroller._target).tuple(), 3)
-        # Draw a line straight in front of the robot
-        cv2.line(drawframe, (0, 0, 255), pos.tuple(), (pos + 1000.0 * front).tuple(), 1)
-    
-    # Draw a circle at the bot's home
-    cv2.circle(drawframe, (0, 255, 0), toScreenPoint(Complex.Cart(300, 0)).tuple(), 10, -1)  # Filled circle
-
-    # Draw the path of the robot
-    for i in range(len(robotcontroller._path) - 1):
-        cv2.line(drawframe, (0, 255, 255), toScreenPoint(robotcontroller._path[i]).tuple(), toScreenPoint(robotcontroller._path[i + 1]).tuple(), 1)
-
 
 
     # select the closest red ball to the robot1
@@ -320,12 +353,23 @@ def processFrame(frame):
     # Afficher l'image
     cv2.imshow('camera', frame)
 
+    #print pygame
+    newTime = pygame.time.get_ticks()
+    deltaTime = (newTime - oldTime) / 1000.0
+    screen.fill((0,0,0))
+    drawRobot(screen, robotcontroller,(0,255,0),(255,0,0),(0,0,255))
+    oldTime = newTime
+    pygame.display.flip()
+
     
 
 millisecondsToWait = 1000 // 30
 if __name__ == "__main__":
     client = Client()
     parser = argparse.ArgumentParser()
+    pygame.init()
+    screen = pygame.display.set_mode((width,height))
+    oldTime = pygame.time.get_ticks()
     if local:
         parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
     else:
