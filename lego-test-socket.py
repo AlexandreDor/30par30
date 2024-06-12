@@ -118,7 +118,6 @@ def client_program():
             numbers[1] = numbers[1] * -0.5
             setSpeed(numbers[0], numbers[1])
 
-    return numbers
     client_socket.close()  # close the connection
     #tts("Connection closed")
 

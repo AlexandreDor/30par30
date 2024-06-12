@@ -18,7 +18,7 @@ sleep(1)
 
 #s = UltrasonicSensor(INPUT_1)
 r = LargeMotor(OUTPUT_A)
-m = LargeMotor(OUTPUT_B) #mines
+#m = LargeMotor(OUTPUT_B) #mines
 p = LargeMotor(OUTPUT_C) #pince
 l = LargeMotor(OUTPUT_D)
 
@@ -26,7 +26,7 @@ l = LargeMotor(OUTPUT_D)
 def stop():
     l.on(SpeedPercent(0))
     r.on(SpeedPercent(0))
-    m.on(SpeedPercent(0))
+    #m.on(SpeedPercent(0))
     p.on(SpeedPercent(0))
 
 def stopMotors():
@@ -110,7 +110,6 @@ def client_program():
             numbers[1] = numbers[1] * -0.5
             setSpeed(numbers[0], numbers[1])
 
-    return numbers
     client_socket.close()  # close the connection
     #tts("Connection closed")
 
