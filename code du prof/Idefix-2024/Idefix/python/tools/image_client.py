@@ -46,6 +46,7 @@ lastCommand = ""
 screen = None
 oldTime = 0
 
+width, height = 800, 800
 
 class Client(TCPClientAbstraction):
     def __init__(self):
@@ -242,8 +243,6 @@ def recognizeArucoCode(frame, id):
 
                 return markerId[i]
 
-def toScreenPoint(c):
-    return Complex.Cart(c[0], c[1])
 
 ##traitement de l'image
 def processFrame(frame):
@@ -257,6 +256,8 @@ def processFrame(frame):
     global lastCommand
     global screen
     global oldTime
+    global width
+    global height
 
     # verifier si l'image est bien recue
     if frame is None:
@@ -367,7 +368,7 @@ if __name__ == "__main__":
     client = Client()
     parser = argparse.ArgumentParser()
     pygame.init()
-    screen = pygame.display.set_mode((800, 800))
+    screen = pygame.display.set_mode((width,height))
     oldTime = pygame.time.get_ticks()
     if local:
         parser.add_argument('-s', '--server', action='store', default='127.0.0.1', type=str, help='address of server to connect')
