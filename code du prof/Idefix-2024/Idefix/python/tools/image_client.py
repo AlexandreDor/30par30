@@ -29,6 +29,8 @@ from jpeg_traits import JpegImage
 all = False
 #local = True
 local = False
+ronbotOn = True
+#ronbotOn = False
 
 robot1_position = (0, 0)
 robot2_position = (0, 0)
@@ -37,10 +39,11 @@ selected_red_ball_position = (0, 0)
 robot1_angle = 0
 robot2_angle = 0
 
-cameraSelected = 0
-robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(360,640))
+cameraSelected = 4
+robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(80,80))
 deltaTime = 10
-control = controller()
+if ronbotOn:
+    control = controller()
 
 lastCommand = ""
 screen = None
@@ -211,6 +214,9 @@ def recognizeArucoCode(frame, id):
     parameters =  cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
+    # augmenter le contraste
+    #frame = cv2.convertScaleAbs(frame, alpha=1.5, beta=0)
+
     # Détecter les codes aruco dans l'image
     markerCorners, markerId, rejectedCandidates = detector.detectMarkers(frame)
 
@@ -241,7 +247,13 @@ def recognizeArucoCode(frame, id):
                 # Dessiner la fleche
                 #cv2.arrowedLine(frame, (robot1_position[0], robot1_position[1]), (int(robot1_position[0] + 50 * np.cos(robot1_angle)),int(robot1_position[1] + 50 * np.sin(robot1_angle))), (0, 255, 0), 2)
 
+                #cv2.imshow('arico', frame)
+
+                print("aruco code ", id, " détecté à la position : ", robot1_position, " et à l'angle : ", robot1_angle)
+
                 return markerId[i]
+
+                
 
 
 ##traitement de l'image
@@ -320,12 +332,17 @@ def processFrame(frame):
 
 
     # select the closest red ball to the robot1
-    for each in redBalls:
-        M = cv2.moments(each)
-        red_ball_position = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-        if (selected_red_ball_position == (0, 0)) | (np.sqrt((red_ball_position[0] - robot1_position[0])**2 + (red_ball_position[1] - robot1_position[1])**2) < np.sqrt((selected_red_ball_position[0] - robot1_position[0])**2 + (selected_red_ball_position[1] - robot1_position[1])**2)):
-            selected_red_ball_position = red_ball_position
+    if selected_red_ball_position == (0, 0):
+        for each in redBalls:
+            M = cv2.moments(each)
+            red_ball_position = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            if (selected_red_ball_position == (0, 0)) | (np.sqrt((red_ball_position[0] - robot1_position[0])**2 + (red_ball_position[1] - robot1_position[1])**2) < np.sqrt((selected_red_ball_position[0] - robot1_position[0])**2 + (selected_red_ball_position[1] - robot1_position[1])**2)):
+                selected_red_ball_position = red_ball_position
         
+
+    if np.sqrt((selected_red_ball_position[0] - robot1_position[0])**2 + (selected_red_ball_position[1] - robot1_position[1])**2) < 50: 
+        selected_red_ball_position = (0, 0)
+        print("nearest red ball is close to the robot1, selecting another one")
 
     # draw a green dot at the selected red ball position
     cv2.circle(drawframe, selected_red_ball_position, 20, (0, 255, 0), 2)
@@ -336,19 +353,22 @@ def processFrame(frame):
     # reduce the size of the image
     frame = cv2.resize(drawframe, (1280, 720))
 
+
     #move the robot to the selected red ball
     target = Complex.Cart(selected_red_ball_position[0], selected_red_ball_position[1])
+    
+    robotcontroller._position = Complex.Cart(robot1_position[0], robot1_position[1])
+    robotcontroller._angle = robot1_angle
+
     robotcontroller.reach(target,deltaTime)
     robotcontroller.update(deltaTime)
 
     print("robotcontroller._leftSpeed : ", int(robotcontroller._leftSpeed))
     print("robotcontroller._rightSpeed : ", int(robotcontroller._rightSpeed))
 
-    if lastCommand != str(int(robotcontroller._leftSpeed)) + " " + str(int(robotcontroller._rightSpeed)):
+    if lastCommand != str(int(robotcontroller._leftSpeed)) + " " + str(int(robotcontroller._rightSpeed)) and ronbotOn:
         control.motorControl(int(robotcontroller._leftSpeed), int(robotcontroller._rightSpeed))
     lastCommand = str(int(robotcontroller._leftSpeed)) + " " + str(int(robotcontroller._rightSpeed))
-
-    print("sedeaoieqgiofqro")
     
     # Afficher l'image
     cv2.imshow('camera', frame)
