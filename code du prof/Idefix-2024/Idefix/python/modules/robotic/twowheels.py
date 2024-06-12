@@ -22,7 +22,10 @@ class TwoWheels:
         self._path = []
         self._control_points = []
         self.balls_in_claws = 0
-        self._backup_timer = 25
+        if robot_variant == 1:
+            self._backup_timer = 25
+        else:
+            self._backup_timer = 0
         self._stored_mines = 4
         self._close_claw = 100
         self._mine_timer = 3
