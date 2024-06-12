@@ -267,16 +267,16 @@ def processFrame(frame):
     
     if robotcontroller._target is not None:
         # Draw target circle
-        cv2.circle(screen, (0, 0, 255), toScreenPoint(robotcontroller._target).tuple(), 3)
+        cv2.circle(drawframe, (0, 0, 255), toScreenPoint(robotcontroller._target).tuple(), 3)
         # Draw a line straight in front of the robot
-        cv2.line(screen, (0, 0, 255), pos.tuple(), (pos + 1000.0 * front).tuple(), 1)
+        cv2.line(drawframe, (0, 0, 255), pos.tuple(), (pos + 1000.0 * front).tuple(), 1)
     
     # Draw a circle at the bot's home
-    cv2.circle(screen, (0, 255, 0), toScreenPoint(Complex.Cart(300, 0)).tuple(), 10, -1)  # Filled circle
+    cv2.circle(drawframe, (0, 255, 0), toScreenPoint(Complex.Cart(300, 0)).tuple(), 10, -1)  # Filled circle
 
     # Draw the path of the robot
     for i in range(len(robotcontroller._path) - 1):
-        cv2.line(screen, (0, 255, 255), toScreenPoint(robotcontroller._path[i]).tuple(), toScreenPoint(robotcontroller._path[i + 1]).tuple(), 1)
+        cv2.line(drawframe, (0, 255, 255), toScreenPoint(robotcontroller._path[i]).tuple(), toScreenPoint(robotcontroller._path[i + 1]).tuple(), 1)
 
 
 
