@@ -336,8 +336,13 @@ def processFrame(frame):
     # reduce the size of the image
     frame = cv2.resize(drawframe, (1280, 720))
 
+
     #move the robot to the selected red ball
     target = Complex.Cart(selected_red_ball_position[0], selected_red_ball_position[1])
+    
+    robotcontroller._position = Complex.Cart(robot1_position[0], robot1_position[1])
+    robotcontroller._angle = robot1_angle
+        
     robotcontroller.reach(target,deltaTime)
     robotcontroller.update(deltaTime)
 
