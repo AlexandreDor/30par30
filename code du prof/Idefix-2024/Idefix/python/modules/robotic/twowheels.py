@@ -3,6 +3,7 @@ import math
 from geometry import Complex
 import random
 
+
 robot_variant = 1
 max_ball = 3
 

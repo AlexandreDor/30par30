@@ -50,6 +50,12 @@ def left(spd = 100):
     l2.on(SpeedPercent(-spd))
     r2.on(SpeedPercent(spd))
 
+def setSpeed(x, y):
+    l.on(SpeedPercent(x))
+    r.on(SpeedPercent(y))
+    l2.on(SpeedPercent(x))
+    r2.on(SpeedPercent(y))
+
 def right(spd = 100):
     left(-spd)
 
@@ -65,7 +71,7 @@ def client_program():
     client_socket.connect((host, port))  # connect to the server
     # print state of connection
     print("Connection to " + host + " on port " + str(port) + " established")
-    tts("Connection established")
+    #tts("Connection established")
     data = ""
     while True:
         # receive data stream. it won't accept data packet greater than 1024 bytes
@@ -78,6 +84,8 @@ def client_program():
         #execute command received from client
         if new:
             print("Received: " + data)
+
+        parts = data.split(',')
         if data == 'forward':
             forward()
         elif data == 'backward':
@@ -95,8 +103,24 @@ def client_program():
             tosay = client_socket.recv(1024).decode()
             print("to say: " + tosay)
             tts(tosay)
+        elif len(parts) == 2:
+            # Supprime les espaces supplémentaires et convertit les parties en entiers
+            numbers = [int(part.strip()) for part in parts]
+            if numbers[0] > 100:
+                numbers[0] = 100
+            if numbers[0] < -100:
+                numbers[0] = -100
+            if numbers[1] > 100:
+                numbers[1] = 100
+            if numbers[1] < -100:
+                numbers[1] = -100
+            numbers[0] = numbers[0] * -1
+            numbers[1] = numbers[1] * -1
+            setSpeed(numbers[0], numbers[1])
+
+    return numbers
     client_socket.close()  # close the connection
-    tts("Connection closed")
+    #tts("Connection closed")
 
 
 if __name__ == '__main__':
