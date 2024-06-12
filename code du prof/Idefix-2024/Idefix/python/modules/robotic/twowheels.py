@@ -107,7 +107,7 @@ class TwoWheels:
 
         
     def setSpeed(self,left,right):
-        print(f"Setting speed to {left}, {right}")
+        #print(f"Setting speed to {left}, {right}")
         self._leftSpeed = left
         self._rightSpeed = right
     def Forward(self,speed):
