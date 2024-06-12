@@ -108,8 +108,8 @@ class TwoWheels:
         
     def setSpeed(self,left,right):
         print(f"Setting speed to {left}, {right}")
-        self._leftSpeed = left * 10
-        self._rightSpeed = right * 10
+        self._leftSpeed = left
+        self._rightSpeed = right
     def Forward(self,speed):
         self.setSpeed(speed,speed)
     def Backward(self,speed):
@@ -119,9 +119,9 @@ class TwoWheels:
     def AntiClockwise(self,speed):
         self.setSpeed(-speed,speed)
     def TurnLeft(self,speed):
-        self.setSpeed(speed / 3,speed)
+        self.setSpeed(speed / 10,speed)
     def TurnRight(self,speed):
-        self.setSpeed(speed / 3,0)
+        self.setSpeed(speed,speed / 10)
     def reach(self,target,dt):
         self._target = target
     def depositMine(self):
