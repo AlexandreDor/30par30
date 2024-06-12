@@ -199,6 +199,9 @@ def recognizeArucoCode(frame, id):
 
                 return markerId[i]
 
+def toScreenPoint(c):
+    return Complex.Cart(c[0], c[1])
+
 ##traitement de l'image
 def processFrame(frame):
     global robot1_position
