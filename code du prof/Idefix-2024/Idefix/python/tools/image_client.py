@@ -38,8 +38,10 @@ robot2_angle = 0
 
 cameraSelected = 0
 robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(360,640))
-deltaTime = 100
+deltaTime = 10
 control = controller()
+
+lastCommand = ""
 
 
 
@@ -206,6 +208,7 @@ def processFrame(frame):
     global robotcontroller
     global deltaTime
     global control
+    global lastCommand
 
     # verifier si l'image est bien recue
     if frame is None:
@@ -291,7 +294,9 @@ def processFrame(frame):
     print("robotcontroller._leftSpeed : ", int(robotcontroller._leftSpeed))
     print("robotcontroller._rightSpeed : ", int(robotcontroller._rightSpeed))
 
-    control.motorControl(int(robotcontroller._leftSpeed), int(robotcontroller._rightSpeed))
+    if lastCommand != str(int(robotcontroller._leftSpeed)) + " " + str(int(robotcontroller._rightSpeed)):
+        control.motorControl(int(robotcontroller._leftSpeed), int(robotcontroller._rightSpeed))
+    lastCommand = str(int(robotcontroller._leftSpeed)) + " " + str(int(robotcontroller._rightSpeed))
 
     print("sedeaoieqgiofqro")
     
