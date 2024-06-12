@@ -4,7 +4,7 @@ from geometry import Complex
 import random
 
 
-robot_variant = 1
+robot_variant = 0
 max_ball = 3
 
 class TwoWheels:
