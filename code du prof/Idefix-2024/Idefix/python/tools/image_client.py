@@ -16,7 +16,7 @@ from geometry import Complex
 import math
 from servtestsocket import controller
 import pygame
-
+from time import sleep
 
 from networking import TCPClientAbstraction, DisconnectedException
 from encoding import Packer
@@ -39,7 +39,7 @@ selected_red_ball_position = (0, 0)
 robot1_angle = 0
 robot2_angle = 0
 
-cameraSelected = 4
+cameraSelected = 0
 robotcontroller = TwoWheels(Complex.Cart(0,0),math.pi/2,50,Complex.Cart(80,80))
 deltaTime = 10
 if ronbotOn:
@@ -380,6 +380,7 @@ def processFrame(frame):
     drawRobot(screen, robotcontroller,(0,255,0),(255,0,0),(0,0,255))
     oldTime = newTime
     pygame.display.flip()
+    sleep(0.1)
 
     
 

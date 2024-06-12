@@ -18,28 +18,24 @@ sleep(1)
 
 #s = UltrasonicSensor(INPUT_1)
 r = LargeMotor(OUTPUT_A)
-r2 = LargeMotor(OUTPUT_B)
-l2 = LargeMotor(OUTPUT_C)
+#m = LargeMotor(OUTPUT_B) #mines
+p = LargeMotor(OUTPUT_C) #pince
 l = LargeMotor(OUTPUT_D)
 
 
 def stop():
     l.on(SpeedPercent(0))
     r.on(SpeedPercent(0))
-    r2.on(SpeedPercent(0))
-    l2.on(SpeedPercent(0))
+    #m.on(SpeedPercent(0))
+    p.on(SpeedPercent(0))
 
 def stopMotors():
     l.on(SpeedPercent(0))
     r.on(SpeedPercent(0))
-    l2.on(SpeedPercent(0))
-    r2.on(SpeedPercent(0))
 
 def forward(spd = -100):
     l.on(SpeedPercent(spd))
     r.on(SpeedPercent(spd))
-    l2.on(SpeedPercent(spd))
-    r2.on(SpeedPercent(spd))
 
 def backward(spd = -100):
     forward(-spd)
@@ -47,14 +43,10 @@ def backward(spd = -100):
 def left(spd = 100):
     l.on(SpeedPercent(-spd))
     r.on(SpeedPercent(spd))
-    l2.on(SpeedPercent(-spd))
-    r2.on(SpeedPercent(spd))
 
 def setSpeed(x, y):
     l.on(SpeedPercent(x))
     r.on(SpeedPercent(y))
-    l2.on(SpeedPercent(x))
-    r2.on(SpeedPercent(y))
 
 def right(spd = 100):
     left(-spd)
