@@ -45,7 +45,7 @@ Après l'abandon de la première tentative, Valentin a conçu un second robot pl
 - **Moteurs dédiés** : Deux moteurs pour les roues, un pour la mâchoire, et un petit moteur pour le poseur de mines. Cette distribution des moteurs permet une meilleure gestion de l'énergie et des capacités du robot.
 - **Robustesse et maniabilité** : Construit en deux séances, ce robot est plus léger, plus rapide, et plus solide que le Robot 1. La conception a été améliorée grâce aux leçons apprises lors de la construction du premier robot.
 
-## Développement du Pathfinding
+## Développement python
 
 ### Contributions d'Alexandre
 Alexandre a commencé par créer une connexion avec les robots en utilisant une connexion Bluetooth pour partager la connexion Wi-Fi. Ensuite, il a développé un programme pour contrôler les robots, d'abord de manière prédéfinie, puis en utilisant une socket pour les contrôler à partir d'un programme Python sur son ordinateur.
@@ -78,13 +78,24 @@ Voici notre [dépôt GitHub](https://github.com/AlexandreDor/30par30) pour le co
 
 ## Images
 
-### Robot 1
+### Robot 1 :
 ![Robot 1](image.png)
 
-### Robot 2
+### Robot 2 :
 ![Robot 2](image-1.png)
 
-Voici le systeme pour poser les Herissons Tcheques:
+#### Voici le systeme pour poser les Herissons Tcheques :
 ![Robot 2](image-2.png)
-Les Herissons Tcheques:
+#### Les Herissons Tcheques :
 ![herissons](image-3.png)
+
+### Codes:
+
+#### QR Code :
+![QR Code](image-4.jpg)
+
+#### Code Datamatrix :
+![Code Datamatrix](image-5.jpg)
+
+#### Code ArUco :
+![Code ArUco](image-6.jpg)
