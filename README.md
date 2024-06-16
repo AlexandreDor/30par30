@@ -79,23 +79,23 @@ Voici notre [dépôt GitHub](https://github.com/AlexandreDor/30par30) pour le co
 ## Images
 
 ### Robot 1 :
-![Robot 1](image.png)
+![Robot 1](./fichiers/readme/image.png)
 
 ### Robot 2 :
-![Robot 2](image-1.png)
+![Robot 2](./fichiers/readme/image-1.png)
 
 #### Voici le systeme pour poser les Herissons Tcheques :
-![Robot 2](image-2.png)
+![Robot 2](./fichiers/readme/image-2.png)
 #### Les Herissons Tcheques :
-![herissons](image-3.png)
+![herissons](./fichiers/readme/image-3.png)
 
 ### Codes:
 
 #### QR Code :
-![QR Code](image-4.jpg)
+![QR Code](./fichiers/readme/image-4.jpg)
 
 #### Code Datamatrix :
-![Code Datamatrix](image-5.jpg)
+![Code Datamatrix](./fichiers/readme/image-5.jpg)
 
 #### Code ArUco :
-![Code ArUco](image-6.jpg)
+![Code ArUco](./fichiers/readme/image-6.jpg)
