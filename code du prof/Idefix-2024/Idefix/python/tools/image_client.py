@@ -34,7 +34,7 @@ ronbotOn = True
 
 robot1_position = (0, 0)
 robot2_position = (0, 0)
-selected_red_ball_position = (0, 0)
+selected_red_ball_position = (1, 1)
 
 robot1_angle = 0
 robot2_angle = 0
@@ -331,7 +331,7 @@ def processFrame(frame):
 
 
     # select the closest red ball to the robot1
-    if selected_red_ball_position == (0, 0) and robot1_position != (0, 0):
+    if selected_red_ball_position == (1, 1) and robot1_position != (0, 0):
         for each in redBalls:
             M = cv2.moments(each)
             red_ball_position = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
@@ -340,7 +340,7 @@ def processFrame(frame):
         
 
     if np.sqrt((selected_red_ball_position[0] - robot1_position[0])**2 + (selected_red_ball_position[1] - robot1_position[1])**2) < 50: 
-        selected_red_ball_position = (0, 0)
+        selected_red_ball_position = (1, 1)
         print("nearest red ball is close to the robot1, selecting another one")
 
     # draw a green dot at the selected red ball position
