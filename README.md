@@ -47,10 +47,18 @@ Après l'abandon de la première tentative, Valentin a conçu un second robot pl
 
 ## Développement du Pathfinding
 
-### Version initiale par Alexandre
-Alexandre a développé une première version du pathfinding, qui n'a pas été conservée en raison de ses performances insuffisantes et de sa complexité. Ce premier essai visait à utiliser des algorithmes de recherche de chemin classiques, mais il s'est avéré inadapté à l'environnement dynamique de l'arène.
+### Contributions d'Alexandre
+Alexandre a commencé par créer une connexion avec les robots en utilisant une connexion Bluetooth pour partager la connexion Wi-Fi. Ensuite, il a développé un programme pour contrôler les robots, d'abord de manière prédéfinie, puis en utilisant une socket pour les contrôler à partir d'un programme Python sur son ordinateur.
 
-### Version finale par Valentin
+Il a fait une première implémentation du pathfinding en utilisant une courbe de Bézier, qui ne prenait en compte que la position du robot et sa destination. Cependant, cette version n'a pas été conservée en raison de ses performances insuffisantes.
+
+Ensuite, il s'est concentré sur la détection des balles et des robots en utilisant la bibliothèque OpenCV. La détection des balles a été un succès : en utilisant une détection de couleur (rouge ou bleu) et en filtrant par rapport au nombre de pixels, il a réussi à obtenir une détection fiable avec les bonnes valeurs.
+
+La détection des robots a été plus compliquée. il a d'abord tenté d'utiliser des QR codes pour identifier les robots, mais cela n'a pas fonctionné en raison de la mauvaise qualité des caméras et de l'éclairage inconsistant. Il a ensuite essayé d'utiliser des codes Datamatrix, mais sur les conseils d'un autre groupe, il a opté pour des codes ArUco, qui sont plus simples à détecter et identifier, et qui utilisent moins de points (4x4). La détection des codes ArUco a fonctionné, bien que les résultats variaient en fonction de la caméra et de l'éclairage.
+
+Il a séparé les caméras pour améliorer la détection, mais n'a pas eu le temps d'implémenter une utilisation intelligente des différents flux. Il a ensuite relié les différents morceaux de code (connexion, pathfinding, détection) pour que les robots puissent se déplacer en fonction des balles détectées. Le programme sélectionnait la balle la plus proche, envoyait les coordonnées de la balle et du robot au pathfinding, qui renvoyait les coordonnées de la trajectoire à suivre, que le programme envoyait ensuite au robot pour qu'il se déplace. Bien que le programme essayait de mener le robot à la balle, il y avait probablement un problème de mesure entre les coordonnées de la caméra et celles du pathfinding, ce qui empêchait le robot d'atteindre correctement la balle.
+
+### Contributions de Valentin
 Valentin a développé une version finale du pathfinding basée sur des courbes de Bézier avec trois points de contrôle stratégiquement placés :
 - **Point avant** : Placé devant le robot pour orienter correctement la courbe. Ce point permet d'assurer que la trajectoire initiale suit la direction actuelle du robot.
 - **Point derrière la cible** : Permet au robot d'arriver derrière la cible, en direction de la base. Ce positionnement est crucial pour que le robot puisse pousser la balle directement vers la base sans devoir faire demi-tour.
@@ -62,6 +70,8 @@ Cette approche permettait aux robots de pousser les balles directement vers la b
 
 Malgré les défis liés à la taille de notre équipe et aux contraintes techniques, nous avons réussi à concevoir deux robots fonctionnels, chacun avec ses propres caractéristiques et stratégies. Le Robot 1, robuste et puissant, et le Robot 2, maniable et équipé de fonctionnalités tactiques, ont démontré nos compétences en construction LEGO et en programmation de robots autonomes.
 
-Notre projet a été une excellente opportunité d'appliquer nos connaissances théoriques à des défis pratiques, et nous sommes fiers des résultats obtenus malgré les obstacles rencontrés.
+Alexandre a joué un rôle crucial dans l'intégration et le développement des systèmes de contrôle et de détection, bien que des problèmes de précision aient limité l'efficacité finale du système. Valentin a réussi à créer un système de pathfinding efficace en utilisant des courbes de Bézier, permettant une navigation plus fluide et précise.
 
-Pour plus de détails techniques et le code source de notre projet, veuillez consulter notre [dépôt GitHub](https://github.com/AlexandreDor/30par30).
+Notre projet a été une excellente opportunité d'appliquer nos connaissances théoriques à des défis pratiques, et nous sommes fiers des résultats obtenus malgré les obstacles rencontrés. Nous avons acquis de précieuses compétences en robotique, en programmation et en travail d'équipe, que nous pourrons appliquer dans nos futurs projets.
+
+Voici notre [dépôt GitHub](https://github.com/AlexandreDor/30par30) pour le code source de notre projet.
