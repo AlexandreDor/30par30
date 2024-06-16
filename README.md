@@ -75,3 +75,16 @@ Alexandre a joué un rôle crucial dans l'intégration et le développement des 
 Notre projet a été une excellente opportunité d'appliquer nos connaissances théoriques à des défis pratiques, et nous sommes fiers des résultats obtenus malgré les obstacles rencontrés. Nous avons acquis de précieuses compétences en robotique, en programmation et en travail d'équipe, que nous pourrons appliquer dans nos futurs projets.
 
 Voici notre [dépôt GitHub](https://github.com/AlexandreDor/30par30) pour le code source de notre projet.
+
+## Images
+
+### Robot 1
+![Robot 1](image.png)
+
+### Robot 2
+![Robot 2](image-1.png)
+
+Voici le systeme pour poser les Herissons Tcheques:
+![Robot 2](image-2.png)
+Les Herissons Tcheques:
+![herissons](image-3.png)
